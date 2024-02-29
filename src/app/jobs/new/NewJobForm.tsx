@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/richTextEditor";
 import { draftToMarkdown } from "markdown-draft-js";
 import LoadingButton from "@/components/loadingButton";
+import createJobPosting from "./actions";
 
 const NewJobForm = () => {
   const form = useForm<createJobValues>({
@@ -39,7 +40,18 @@ const NewJobForm = () => {
   } = form;
 
   async function onSubmit(values: createJobValues) {
-    alert(JSON.stringify(values, null, 2));
+    const formData = new FormData();
+
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) {
+        formData.append(key, value);
+      }
+    });
+    try {
+      await createJobPosting(formData);
+    } catch (err) {
+      alert("Something went wrong, please try again.");
+    }
   }
   return (
     <main className=" scale-y-10 m-auto my-10 max-w-3xl">
@@ -138,13 +150,16 @@ const NewJobForm = () => {
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Select {...field} defaultValue="" 
-                    onChange={(e) => {                                 //trigger location field validation when job type is remote
+                    <Select
+                      {...field}
+                      defaultValue=""
+                      onChange={(e) => {
+                        //trigger location field validation when job type is remote
                         field.onChange(e);
-                        if(e.currentTarget.value === 'Remote') {
-                            trigger("location")
+                        if (e.currentTarget.value === "Remote") {
+                          trigger("location");
                         }
-                    }}
+                      }}
                     >
                       <option value="" hidden>
                         Select an option
@@ -239,12 +254,14 @@ const NewJobForm = () => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <Label
-                  onClick={() => setFocus("description")}
-                  >Description</Label>
+                  <Label onClick={() => setFocus("description")}>
+                    Description
+                  </Label>
                   <FormControl>
                     <RichTextEditor
-                      onChange={(draft) =>field.onChange(draftToMarkdown(draft))}
+                      onChange={(draft) =>
+                        field.onChange(draftToMarkdown(draft))
+                      }
                       ref={field.ref}
                     />
                   </FormControl>
@@ -252,20 +269,22 @@ const NewJobForm = () => {
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={control}
               name="salary"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Salary</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number"/>
+                    <Input {...field} type="number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <LoadingButton type="submit" loading={isSubmitting}>Submit</LoadingButton>
+            <LoadingButton type="submit" loading={isSubmitting}>
+              Submit
+            </LoadingButton>
           </form>
         </Form>
       </div>
